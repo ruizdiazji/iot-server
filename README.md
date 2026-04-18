@@ -18,8 +18,8 @@ Base para un dashboard web con:
 
 ## Variables de entorno
 
-El archivo raiz `.env` del dashboard ya esta alineado con el stack `db/`.
-Ajustar segun tu entorno:
+El archivo raiz `.env` del dashboard esta alineado con el stack `db/`.
+Ajustar segun entorno:
 
 - `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
 - `APP_ADMIN_USERNAME`, `APP_ADMIN_PASSWORD`
@@ -28,7 +28,7 @@ Ajustar segun tu entorno:
 
 ## Esquema de datos esperado
 
-El backend ya viene configurado para consultar la tabla real del ingestor:
+El backend viene configurado para consultar la tabla real del ingestor:
 
 - `sensor_events`
 - columna temporal: `recorded_at`
@@ -39,7 +39,7 @@ Tambien usa una tabla propia para autenticacion:
 
 - `dashboard_users`
 
-El archivo [db/initdb/03_create_dashboard_users.sql](/home/juanird/Documentos/ESP32/ESP_IDF_PROJECTS/dashboard_mqtt_web/db/initdb/03_create_dashboard_users.sql:1) la crea en instalaciones nuevas.
+El archivo [db/initdb/03_create_dashboard_users.sql](/db/initdb/03_create_dashboard_users.sql:1) la crea en instalaciones nuevas.
 Para bases ya existentes, el backend tambien la crea automaticamente al arrancar y genera el admin inicial si no existe.
 
 ## Red compartida
@@ -51,7 +51,7 @@ Si todavia no existe, crearla una sola vez:
 docker network create edge_net
 ```
 
-Despues podes levantar cada stack por separado y todos quedan en la misma red:
+levantar cada stack por separado y todos quedan en la misma red:
 
 ```bash
 docker compose -f servidor-mqtt/docker-compose.yml --env-file servidor-mqtt/.env up -d
@@ -73,6 +73,6 @@ docker compose up -d --build
 ## Notas de integracion
 
 - El backend consulta directamente TimescaleDB. El navegador no accede a Postgres.
-- El login ahora usa usuarios persistidos en `dashboard_users`, con password hash `PBKDF2`.
+- El login usa usuarios persistidos en `dashboard_users`, con password hash `PBKDF2`.
 - El admin inicial se define por `APP_ADMIN_USERNAME` y `APP_ADMIN_PASSWORD`.
 - El panel web permite listar, crear y activar/desactivar usuarios si la sesion tiene rol `admin`.
