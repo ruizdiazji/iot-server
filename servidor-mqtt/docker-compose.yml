@@ -1,0 +1,23 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: ${MOSQUITTO_CONTAINER_NAME:-edge-mqtt}
+    restart: unless-stopped
+    user: "${UID}:${GID}"
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+      - "${MQTT_WS_PORT:-9001}:9001"
+    environment:
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ./config:/mosquitto/config:ro
+      - ./data/persistence:/mosquitto/data
+      - ./data/log:/mosquitto/log
+      - ./secrets:/mosquitto/secrets
+    networks:
+      - edge
+
+networks:
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:-edge_net}

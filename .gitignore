@@ -1,0 +1,11 @@
+.env
+.env.local
+.env.*.local
+db/.env
+backend/.env
+servidor-mqtt/.env
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+dist/

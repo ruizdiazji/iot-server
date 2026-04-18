@@ -1,0 +1,14 @@
+# Lista de control de acceso para Mosquitto.
+# Ajusta usuarios y permisos según tus aplicaciones.
+
+user mqttapp
+# Permisos de lectura/escritura completos para todos los tópicos.
+topic readwrite #
+
+user mushrooms_network
+# Limita a su árbol de sensores
+topic readwrite thmb02s/#
+
+# Ejemplo de lector en modo solo lectura (descomenta si lo necesitas).
+# user monitor
+# topic read $SYS/#

@@ -1,0 +1,48 @@
+services:
+  timescaledb:
+    image: ${TIMESCALEDB_IMAGE:-timescale/timescaledb-ha:pg16}
+    container_name: ${TIMESCALEDB_CONTAINER_NAME:-edge-timescaledb}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-edge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-edge_password}
+      POSTGRES_DB: ${POSTGRES_DB:-edge_data}
+      TIMESCALEDB_TELEMETRY: ${TIMESCALEDB_TELEMETRY:-off}
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ./data:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edge} -d ${POSTGRES_DB:-edge_data}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - edge
+
+  mqtt-ingestor:
+    build:
+      context: .
+      dockerfile: mqtt-ingestor/Dockerfile
+    container_name: ${MQTT_INGESTOR_CONTAINER_NAME:-edge-mqtt-ingestor}
+    restart: unless-stopped
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    environment:
+      MQTT_HOST: ${MQTT_HOST}
+      MQTT_PORT: ${MQTT_PORT:-1883}
+      MQTT_USERNAME: ${MQTT_USERNAME:-}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-}
+      MQTT_TOPIC: ${MQTT_TOPIC:-sensors/#}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-edge}:${POSTGRES_PASSWORD:-edge_password}@${TIMESCALEDB_CONTAINER_NAME:-edge-timescaledb}:5432/${POSTGRES_DB:-edge_data}
+      TZ: ${TZ:-UTC}
+    networks:
+      - edge
+
+networks:
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:-edge_net}

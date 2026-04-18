@@ -1,0 +1,38 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    restart: unless-stopped
+    networks:
+      - default
+      - edge
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_PATH: /api
+    restart: unless-stopped
+    networks:
+      - default
+
+  nginx:
+    build:
+      context: ./nginx
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    restart: unless-stopped
+    networks:
+      - default
+
+networks:
+  edge:
+    external: true
+    name: ${EDGE_NETWORK:-edge_net}
