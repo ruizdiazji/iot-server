@@ -61,26 +61,36 @@ select {
   display: grid;
   place-items: center;
   padding: 32px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 42% 42%, rgba(162, 79, 220, 0.45), transparent 32%),
+    radial-gradient(circle at 65% 18%, rgba(87, 38, 148, 0.6), transparent 34%),
+    linear-gradient(135deg, #3d1d71 0%, #5b238a 48%, #351866 100%);
 }
 
 .login-panel {
-  width: min(980px, 100%);
+  position: relative;
+  width: min(1120px, 100%);
+  min-height: min(720px, calc(100vh - 64px));
   display: grid;
-  grid-template-columns: 1fr 390px;
-  overflow: hidden;
-  border: 1px solid #d9e0ea;
-  border-radius: 4px;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgba(25, 38, 62, 0.08);
+  grid-template-columns: minmax(0, 0.95fr) minmax(280px, 1fr) 390px;
+  align-items: center;
+  gap: 26px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .login-copy {
-  padding: 48px;
+  padding: 48px 0 48px 16px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background: #ffffff;
-  border-right: 1px solid #e3e8f0;
+  background: transparent;
+  border-right: 0;
+  color: #ffffff;
+  text-shadow: 0 3px 16px rgba(24, 10, 48, 0.24);
 }
 
 .eyebrow,
@@ -100,14 +110,234 @@ select {
 }
 
 .login-copy h1 {
-  font-size: clamp(2.15rem, 4vw, 4rem);
-  line-height: 1;
-  color: #1f2937;
+  font-size: clamp(2.4rem, 5vw, 5.8rem);
+  line-height: 0.9;
+  color: #ffffff;
+  max-width: 7.5ch;
+  text-transform: uppercase;
 }
 
 .subtitle {
   color: #667085;
   line-height: 1.6;
+}
+
+.login-copy .eyebrow {
+  color: #efe6ff;
+  font-size: clamp(1rem, 1.5vw, 1.22rem);
+  letter-spacing: 0;
+}
+
+.login-copy .subtitle {
+  max-width: 36ch;
+  color: #efe6ff;
+  font-size: 1rem;
+}
+
+.login-art {
+  position: relative;
+  min-height: 460px;
+  align-self: stretch;
+}
+
+.mushroom-scene {
+  position: absolute;
+  inset: 6% 0 0;
+}
+
+.mushroom-base {
+  position: absolute;
+  left: 10%;
+  right: 2%;
+  bottom: 8%;
+  height: 92px;
+  border-radius: 55% 45% 45% 55% / 62% 62% 38% 38%;
+  background: linear-gradient(180deg, #9be11d, #58b800);
+  box-shadow: inset 0 -18px 0 rgba(49, 118, 0, 0.18), 0 18px 28px rgba(24, 10, 48, 0.2);
+}
+
+.mushroom-base::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: -23px;
+  height: 42px;
+  background:
+    radial-gradient(circle at 12% 0, #58b800 0 13px, transparent 14px),
+    radial-gradient(circle at 27% 0, #58b800 0 18px, transparent 19px),
+    radial-gradient(circle at 45% 0, #58b800 0 12px, transparent 13px),
+    radial-gradient(circle at 64% 0, #58b800 0 20px, transparent 21px),
+    radial-gradient(circle at 82% 0, #58b800 0 13px, transparent 14px);
+}
+
+.mushroom-stem {
+  position: absolute;
+  left: 39%;
+  bottom: 23%;
+  width: 138px;
+  height: 176px;
+  border-radius: 44% 46% 38% 40% / 33% 32% 62% 62%;
+  background: linear-gradient(90deg, #edc851, #ffea8e 44%, #f5d460);
+  box-shadow: inset -14px -12px 0 rgba(135, 87, 5, 0.12);
+  z-index: 2;
+}
+
+.mushroom-stem::after {
+  content: "";
+  position: absolute;
+  left: 34px;
+  right: 28px;
+  bottom: -32px;
+  height: 54px;
+  border-radius: 0 0 38px 38px;
+  background: #9ac313;
+}
+
+.mushroom-cap {
+  position: absolute;
+  left: 25%;
+  top: 7%;
+  width: 290px;
+  height: 142px;
+  border-radius: 54% 46% 36% 34% / 80% 80% 28% 24%;
+  background: #ff2c2e;
+  transform: rotate(-8deg);
+  box-shadow: inset -16px -20px 0 rgba(161, 26, 27, 0.16), 0 16px 26px rgba(24, 10, 48, 0.22);
+  z-index: 3;
+}
+
+.mushroom-cap::after {
+  content: "";
+  position: absolute;
+  left: 78px;
+  bottom: -18px;
+  width: 118px;
+  height: 34px;
+  border-radius: 0 0 70px 70px;
+  background: #d1a43d;
+}
+
+.mushroom-cap i {
+  position: absolute;
+  display: block;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.mushroom-cap i:nth-child(1) {
+  left: 28px;
+  top: 70px;
+}
+
+.mushroom-cap i:nth-child(2) {
+  left: 92px;
+  top: 12px;
+  width: 50px;
+  height: 50px;
+}
+
+.mushroom-cap i:nth-child(3) {
+  right: 58px;
+  top: 30px;
+  width: 48px;
+  height: 48px;
+}
+
+.mushroom-cap i:nth-child(4) {
+  right: 10px;
+  top: 80px;
+}
+
+.eye-left,
+.eye-right {
+  position: absolute;
+  top: 68px;
+  width: 7px;
+  height: 18px;
+  border-radius: 999px;
+  background: #17121d;
+}
+
+.eye-left {
+  left: 42px;
+}
+
+.eye-right {
+  right: 42px;
+}
+
+.smile {
+  position: absolute;
+  left: 54px;
+  top: 98px;
+  width: 32px;
+  height: 17px;
+  border: 5px solid #17121d;
+  border-top: 0;
+  border-radius: 0 0 28px 28px;
+}
+
+.smile::after {
+  content: "";
+  position: absolute;
+  right: 1px;
+  bottom: -2px;
+  width: 9px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff6b6d;
+}
+
+.mini-mushroom {
+  position: absolute;
+  width: 52px;
+  height: 42px;
+  border-radius: 50% 50% 20% 20%;
+  background: #ff2c2e;
+  z-index: 4;
+}
+
+.mini-mushroom::before {
+  content: "";
+  position: absolute;
+  left: 17px;
+  bottom: -22px;
+  width: 20px;
+  height: 29px;
+  border-radius: 12px;
+  background: #ffe68a;
+}
+
+.mini-mushroom::after {
+  content: "";
+  position: absolute;
+  inset: 9px 8px auto;
+  height: 12px;
+  background:
+    radial-gradient(circle at 15% 45%, #fff 0 4px, transparent 5px),
+    radial-gradient(circle at 50% 15%, #fff 0 5px, transparent 6px),
+    radial-gradient(circle at 83% 48%, #fff 0 4px, transparent 5px);
+}
+
+.mini-one {
+  left: 14%;
+  bottom: 25%;
+  transform: rotate(-14deg);
+}
+
+.mini-two {
+  right: 15%;
+  bottom: 28%;
+  transform: rotate(9deg);
+}
+
+.mini-three {
+  right: 34%;
+  bottom: 18%;
+  transform: rotate(-5deg) scale(0.82);
 }
 
 .login-form,
@@ -117,8 +347,13 @@ select {
 }
 
 .login-form {
-  padding: 40px;
+  padding: 30px;
   align-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 22px 58px rgba(24, 10, 48, 0.28);
+  backdrop-filter: blur(16px);
 }
 
 label {
@@ -587,6 +822,30 @@ button:disabled {
   .chart {
     height: 360px;
   }
+
+  .login-panel {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .login-copy {
+    padding: 28px 0 0;
+    text-align: center;
+    align-items: center;
+  }
+
+  .login-copy h1 {
+    max-width: 10ch;
+  }
+
+  .login-art {
+    min-height: 300px;
+  }
+
+  .mushroom-scene {
+    transform: scale(0.72);
+    transform-origin: center top;
+  }
 }
 
 @media (max-width: 560px) {
@@ -594,18 +853,17 @@ button:disabled {
     padding: 16px;
   }
 
-  .login-panel {
-    grid-template-columns: 1fr;
-  }
-
   .login-copy {
     border-right: 0;
-    border-bottom: 1px solid #e3e8f0;
   }
 
   .login-copy,
   .login-form {
     padding: 26px;
+  }
+
+  .login-art {
+    display: none;
   }
 
   .source-button {

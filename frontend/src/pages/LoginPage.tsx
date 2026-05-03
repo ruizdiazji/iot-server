@@ -27,6 +27,26 @@ export function LoginPage({ onSubmit, error, loading }: LoginPageProps) {
           </p>
         </div>
 
+        <div className="login-art" aria-hidden="true">
+          <div className="mushroom-scene">
+            <span className="mushroom-cap">
+              <i />
+              <i />
+              <i />
+              <i />
+            </span>
+            <span className="mushroom-stem">
+              <i className="eye-left" />
+              <i className="eye-right" />
+              <i className="smile" />
+            </span>
+            <span className="mushroom-base" />
+            <span className="mini-mushroom mini-one" />
+            <span className="mini-mushroom mini-two" />
+            <span className="mini-mushroom mini-three" />
+          </div>
+        </div>
+
         <form className="login-form" onSubmit={handleSubmit}>
           <label>
             Usuario
