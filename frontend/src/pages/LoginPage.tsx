@@ -19,11 +19,11 @@ export function LoginPage({ onSubmit, error, loading }: LoginPageProps) {
     <main className="login-shell">
       <section className="login-panel">
         <div className="login-copy">
-          <p className="eyebrow">MQTT Observability</p>
-          <h1>Dashboard temporal para tus topics MQTT</h1>
+          <p className="eyebrow">Plataforma de monitoreo</p>
+          <h1>Panel de control para el cultivo de hongos</h1>
           <p className="subtitle">
-            Consultas historicas desde TimescaleDB con una interfaz enfocada en
-            exploracion, filtros y analisis rapido.
+            Control de los procesos y consultas historicas enfocadas en
+            exploracion, filtros y analisis rapido del estado del sistema.
           </p>
         </div>
 

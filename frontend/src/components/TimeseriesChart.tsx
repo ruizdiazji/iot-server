@@ -5,10 +5,11 @@ import type { SeriesPoint } from "../types";
 
 interface TimeseriesChartProps {
   topic: string;
+  title?: string;
   points: SeriesPoint[];
 }
 
-export function TimeseriesChart({ topic, points }: TimeseriesChartProps) {
+export function TimeseriesChart({ topic, title, points }: TimeseriesChartProps) {
   const chartRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function TimeseriesChart({ topic, points }: TimeseriesChartProps) {
         bottom: 42,
       },
       title: {
-        text: topic,
+        text: title ?? topic,
         left: 18,
         top: 12,
         textStyle: {
@@ -79,7 +80,7 @@ export function TimeseriesChart({ topic, points }: TimeseriesChartProps) {
       window.removeEventListener("resize", handleResize);
       chart.dispose();
     };
-  }, [points, topic]);
+  }, [points, title, topic]);
 
   return <div className="chart" ref={chartRef} />;
 }
