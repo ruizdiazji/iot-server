@@ -1,8 +1,27 @@
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0");
+
 :root {
   font-family: Inter, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   color: #354052;
   background: #f3f6fb;
   color-scheme: light;
+}
+
+.material-symbols-outlined {
+  direction: ltr;
+  display: inline-block;
+  font-family: "Material Symbols Outlined";
+  font-feature-settings: "liga";
+  font-size: 24px;
+  font-style: normal;
+  font-weight: normal;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -357,8 +376,7 @@ button:disabled {
   border-radius: 50%;
   color: #206bc4;
   background: #edf4ff;
-  font-size: 0.85rem;
-  font-weight: 800;
+  font-size: 20px;
 }
 
 .topic-tile strong {

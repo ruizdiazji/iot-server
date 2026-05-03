@@ -22,9 +22,9 @@ const BUCKET_OPTIONS = [
 ];
 
 const TOPIC_ALIASES: Record<string, { label: string; icon: string; unit?: string }> = {
-  humidity: { label: "Humedad", icon: "H", unit: "%" },
-  lux: { label: "Luz ambiente", icon: "L", unit: "lx" },
-  temperature: { label: "Temperatura", icon: "T", unit: "C" },
+  humidity: { label: "Humedad", icon: "humidity_mid", unit: "%" },
+  lux: { label: "Luz ambiente", icon: "light_mode", unit: "lx" },
+  temperature: { label: "Temperatura", icon: "thermostat", unit: "C" },
 };
 
 interface DashboardPageProps {
@@ -98,7 +98,7 @@ function getTopicAlias(topic: string) {
 
   return {
     label: toTitleCase(measurement || topic),
-    icon: (measurement.charAt(0) || "S").toUpperCase(),
+    icon: "sensors",
     device,
   };
 }
@@ -215,7 +215,7 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
       <header className="app-header">
         <div className="brand">
           <span className="brand-mark">M</span>
-          <strong>MQTT Dashboard</strong>
+          <strong>Panel Cultivo de Hongos</strong>
         </div>
 
         <div className="header-actions">
@@ -295,11 +295,17 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
               <button
                 className={`topic-tile ${snapshot.topic === selectedTopic ? "is-selected" : ""}`}
                 key={snapshot.topic}
-                onClick={() => setSelectedTopic(snapshot.topic)}
+                onClick={() =>
+                  setSelectedTopic((currentTopic) =>
+                    currentTopic === snapshot.topic ? null : snapshot.topic,
+                  )
+                }
                 type="button"
               >
                 <span className="topic-trend">{getFreshness(snapshot.recorded_at)}</span>
-                <span className="topic-icon">{alias.icon}</span>
+                <span className="material-symbols-outlined topic-icon" aria-hidden="true">
+                  {alias.icon}
+                </span>
                 <strong>
                   {formatValue(snapshot.value)}
                   {alias.unit ? <small>{alias.unit}</small> : null}
