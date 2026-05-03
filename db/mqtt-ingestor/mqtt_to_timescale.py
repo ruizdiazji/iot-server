@@ -24,11 +24,36 @@ def parse_timestamp(value: Any) -> datetime:
         return datetime.now(timezone.utc)
 
     if isinstance(value, (int, float)):
-        return datetime.fromtimestamp(value, tz=timezone.utc)
+        timestamp = float(value)
+
+        # Accept Unix timestamps commonly emitted by embedded devices:
+        # seconds, milliseconds, microseconds, or nanoseconds.
+        if timestamp > 1_000_000_000_000_000_000:
+            timestamp = timestamp / 1_000_000_000
+        elif timestamp > 1_000_000_000_000_000:
+            timestamp = timestamp / 1_000_000
+        elif timestamp > 1_000_000_000_000:
+            timestamp = timestamp / 1_000
+
+        try:
+            parsed = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+        except (OverflowError, OSError, ValueError):
+            return datetime.now(timezone.utc)
+
+        if parsed.year < 2000 or parsed.year > 2100:
+            return datetime.now(timezone.utc)
+
+        return parsed
 
     if isinstance(value, str):
         normalized = value.replace("Z", "+00:00")
-        return datetime.fromisoformat(normalized)
+        try:
+            return datetime.fromisoformat(normalized)
+        except ValueError:
+            try:
+                return parse_timestamp(float(value))
+            except ValueError:
+                return datetime.now(timezone.utc)
 
     return datetime.now(timezone.utc)
 
