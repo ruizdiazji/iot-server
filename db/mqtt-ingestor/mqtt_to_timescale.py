@@ -18,6 +18,15 @@ DATABASE_URL = os.getenv(
     "postgresql://edge:cambia_esta_password@localhost:5432/edge_data",
 )
 
+METADATA_FIELDS = {
+    "addr",
+    "device_id",
+    "sensor",
+    "sensor_name",
+    "timestamp",
+    "unit",
+}
+
 
 def parse_timestamp(value: Any) -> datetime:
     if value in (None, ""):
@@ -46,78 +55,116 @@ def parse_timestamp(value: Any) -> datetime:
         return parsed
 
     if isinstance(value, str):
-        normalized = value.replace("Z", "+00:00")
+        normalized = value.strip().replace("Z", "+00:00")
+        try:
+            return parse_timestamp(float(normalized))
+        except ValueError:
+            pass
+
         try:
             return datetime.fromisoformat(normalized)
-        except ValueError:
-            try:
-                return parse_timestamp(float(value))
-            except ValueError:
-                return datetime.now(timezone.utc)
+        except (OverflowError, OSError, ValueError):
+            return datetime.now(timezone.utc)
 
     return datetime.now(timezone.utc)
 
 
-def normalize_payload(topic: str, payload: dict[str, Any]) -> dict[str, Any]:
+def normalize_payload(topic: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
     topic_parts = topic.split("/")
     fallback_device_id = topic_parts[1] if len(topic_parts) > 1 else "unknown"
     fallback_sensor_name = topic_parts[2] if len(topic_parts) > 2 else None
 
-    raw_value = payload.get("value")
-    value_double = raw_value if isinstance(raw_value, (int, float)) else None
-    value_text = None if value_double is not None else str(raw_value) if raw_value is not None else None
-
-    return {
-        "topic": topic,
+    base_data = {
         "device_id": str(payload.get("device_id") or fallback_device_id),
-        "sensor_name": payload.get("sensor") or payload.get("sensor_name") or fallback_sensor_name,
-        "value_double": value_double,
-        "value_text": value_text,
         "unit": payload.get("unit"),
         "payload": json.dumps(payload),
         "recorded_at": parse_timestamp(payload.get("timestamp")),
     }
 
+    if "value" in payload:
+        raw_value = payload.get("value")
+        value_double = raw_value if isinstance(raw_value, (int, float)) else None
+        value_text = None if value_double is not None else str(raw_value) if raw_value is not None else None
+
+        return [
+            {
+                **base_data,
+                "topic": topic,
+                "sensor_name": payload.get("sensor") or payload.get("sensor_name") or fallback_sensor_name,
+                "value_double": value_double,
+                "value_text": value_text,
+            }
+        ]
+
+    measurements = [
+        (key, value)
+        for key, value in payload.items()
+        if key not in METADATA_FIELDS and isinstance(value, (int, float))
+    ]
+
+    if not measurements:
+        return [
+            {
+                **base_data,
+                "topic": topic,
+                "sensor_name": payload.get("sensor") or payload.get("sensor_name") or fallback_sensor_name,
+                "value_double": None,
+                "value_text": None,
+            }
+        ]
+
+    return [
+        {
+            **base_data,
+            "topic": f"{topic}/{measurement_name}",
+            "sensor_name": measurement_name,
+            "value_double": measurement_value,
+            "value_text": None,
+        }
+        for measurement_name, measurement_value in measurements
+    ]
+
 
 def insert_message(conn: psycopg.Connection, msg: mqtt.MQTTMessage) -> None:
     decoded = msg.payload.decode("utf-8")
     payload = json.loads(decoded)
-    data = normalize_payload(msg.topic, payload)
+    measurements = normalize_payload(msg.topic, payload)
 
     with conn.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO sensor_events (
-              topic,
-              device_id,
-              sensor_name,
-              value_double,
-              value_text,
-              unit,
-              qos,
-              retained,
-              payload,
-              recorded_at
+        for data in measurements:
+            cur.execute(
+                """
+                INSERT INTO sensor_events (
+                  topic,
+                  device_id,
+                  sensor_name,
+                  value_double,
+                  value_text,
+                  unit,
+                  qos,
+                  retained,
+                  payload,
+                  recorded_at
+                )
+                VALUES (
+                  %(topic)s,
+                  %(device_id)s,
+                  %(sensor_name)s,
+                  %(value_double)s,
+                  %(value_text)s,
+                  %(unit)s,
+                  %(qos)s,
+                  %(retained)s,
+                  %(payload)s::jsonb,
+                  %(recorded_at)s
+                )
+                """,
+                {
+                    **data,
+                    "qos": msg.qos,
+                    "retained": msg.retain,
+                },
             )
-            VALUES (
-              %(topic)s,
-              %(device_id)s,
-              %(sensor_name)s,
-              %(value_double)s,
-              %(value_text)s,
-              %(unit)s,
-              %(qos)s,
-              %(retained)s,
-              %(payload)s::jsonb,
-              %(recorded_at)s
-            )
-            """,
-            {
-                **data,
-                "qos": msg.qos,
-                "retained": msg.retain,
-            },
-        )
     conn.commit()
 
 
