@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { getTimeseries, getTopics, logout } from "../api";
+import { getTimeseries, getTopicValues, logout } from "../api";
 import { TimeseriesChart } from "../components/TimeseriesChart";
 import { UserManagementPanel } from "../components/UserManagementPanel";
-import type { SeriesPoint, User } from "../types";
+import type { SeriesPoint, TopicSnapshot, User } from "../types";
 
 const RANGE_OPTIONS = [
   { label: "1h", hours: 1, bucket: "1 minute" },
@@ -30,9 +30,47 @@ function toIsoDate(hoursBack: number) {
   return new Date(Date.now() - hoursBack * 60 * 60 * 1000).toISOString();
 }
 
+function toDateTimeLocal(value: string) {
+  const date = new Date(value);
+  const offsetMs = date.getTimezoneOffset() * 60 * 1000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function fromDateTimeLocal(value: string) {
+  return new Date(value).toISOString();
+}
+
+function formatValue(value: number) {
+  return new Intl.NumberFormat("es-AR", {
+    maximumFractionDigits: Math.abs(value) >= 100 ? 1 : 3,
+  }).format(value);
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("es-AR", {
+    dateStyle: "short",
+    timeStyle: "medium",
+  }).format(new Date(value));
+}
+
+function getFreshness(recordedAt: string) {
+  const minutes = Math.max(0, Math.round((Date.now() - new Date(recordedAt).getTime()) / 60000));
+
+  if (minutes < 2) {
+    return "Ahora";
+  }
+
+  if (minutes < 60) {
+    return `Hace ${minutes} min`;
+  }
+
+  const hours = Math.round(minutes / 60);
+  return `Hace ${hours} h`;
+}
+
 export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
-  const [topics, setTopics] = useState<string[]>([]);
-  const [selectedTopic, setSelectedTopic] = useState("");
+  const [snapshots, setSnapshots] = useState<TopicSnapshot[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
   const [from, setFrom] = useState(toIsoDate(1));
   const [to, setTo] = useState(new Date().toISOString());
   const [bucket, setBucket] = useState("1 minute");
@@ -44,17 +82,17 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
   useEffect(() => {
     let active = true;
 
-    async function loadTopics() {
+    async function loadSnapshots() {
       try {
-        const response = await getTopics();
+        const response = await getTopicValues();
         if (!active) {
           return;
         }
-        setTopics(response.topics);
-        setSelectedTopic(response.topics[0] ?? "");
+        setSnapshots(response.topics);
+        setSelectedTopic((currentTopic) => currentTopic ?? response.topics[0]?.topic ?? null);
       } catch (loadError) {
         if (active) {
-          setError(loadError instanceof Error ? loadError.message : "No se pudieron cargar los topics");
+          setError(loadError instanceof Error ? loadError.message : "No se pudieron cargar los valores actuales");
         }
       } finally {
         if (active) {
@@ -63,7 +101,7 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
       }
     }
 
-    void loadTopics();
+    void loadSnapshots();
     return () => {
       active = false;
     };
@@ -75,6 +113,7 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
       return;
     }
 
+    const topic = selectedTopic;
     let active = true;
 
     async function loadSeries() {
@@ -82,7 +121,7 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
       setError(null);
       try {
         const response = await getTimeseries({
-          topic: selectedTopic,
+          topic,
           from,
           to,
           bucket,
@@ -118,14 +157,30 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
     setBucket(nextBucket);
   }
 
+  async function refreshSnapshots() {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await getTopicValues();
+      setSnapshots(response.topics);
+      setSelectedTopic((currentTopic) => currentTopic ?? response.topics[0]?.topic ?? null);
+    } catch (refreshError) {
+      setError(refreshError instanceof Error ? refreshError.message : "No se pudieron actualizar los valores");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const selectedSnapshot = snapshots.find((snapshot) => snapshot.topic === selectedTopic);
+
   return (
     <main className="dashboard-shell">
       <aside className="sidebar">
         <div>
           <p className="eyebrow">MQTT Dashboard</p>
-          <h2>Series temporales</h2>
+          <h2>Telemetria</h2>
           <p className="sidebar-copy">
-            Explora historicos por topic con agregacion temporal desde TimescaleDB.
+            Estado actual por topic y analisis historico desde TimescaleDB.
           </p>
         </div>
 
@@ -142,7 +197,19 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
 
       <section className="dashboard-content">
         <header className="topbar">
+          <div>
+            <p className="panel-kicker">Vista general</p>
+            <h1>Valores actuales</h1>
+          </div>
           <div className="quick-filters">
+            <button
+              className="chip-button"
+              disabled={loading}
+              onClick={() => void refreshSnapshots()}
+              type="button"
+            >
+              Actualizar
+            </button>
             {RANGE_OPTIONS.map((option) => (
               <button
                 className="chip-button"
@@ -156,68 +223,87 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
           </div>
         </header>
 
-        <section className="filters-card">
-          <label>
-            Topic
-            <select
-              disabled={loading || topics.length === 0}
-              value={selectedTopic}
-              onChange={(event) => setSelectedTopic(event.target.value)}
+        {error ? <p className="error-text">{error}</p> : null}
+
+        <section className="topic-grid" aria-busy={loading}>
+          {snapshots.map((snapshot) => (
+            <button
+              className={`topic-tile ${snapshot.topic === selectedTopic ? "is-selected" : ""}`}
+              key={snapshot.topic}
+              onClick={() => setSelectedTopic(snapshot.topic)}
+              type="button"
             >
-              {topics.map((topic) => (
-                <option key={topic} value={topic}>
-                  {topic}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Desde
-            <input
-              type="datetime-local"
-              value={from.slice(0, 16)}
-              onChange={(event) => setFrom(new Date(event.target.value).toISOString())}
-            />
-          </label>
-
-          <label>
-            Hasta
-            <input
-              type="datetime-local"
-              value={to.slice(0, 16)}
-              onChange={(event) => setTo(new Date(event.target.value).toISOString())}
-            />
-          </label>
-
-          <label>
-            Bucket
-            <select value={bucket} onChange={(event) => setBucket(event.target.value)}>
-              {BUCKET_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
+              <span className="topic-name">{snapshot.topic}</span>
+              <strong>{formatValue(snapshot.value)}</strong>
+              <span className="topic-meta">{getFreshness(snapshot.recorded_at)}</span>
+            </button>
+          ))}
         </section>
 
-        <section className="panel-card">
-          <div className="panel-header">
-            <div>
-              <p className="panel-kicker">Panel principal</p>
-              <h3>{selectedTopic || "Sin topic seleccionado"}</h3>
-            </div>
-            <span className="status-text">{querying ? "Consultando..." : `${points.length} puntos`}</span>
+        {snapshots.length === 0 && !loading ? (
+          <div className="empty-state">No hay topics con valores almacenados para mostrar.</div>
+        ) : null}
+
+        <section className="detail-layout">
+          <div className="filters-card detail-controls">
+            <label>
+              Desde
+              <input
+                type="datetime-local"
+                value={toDateTimeLocal(from)}
+                onChange={(event) => setFrom(fromDateTimeLocal(event.target.value))}
+              />
+            </label>
+
+            <label>
+              Hasta
+              <input
+                type="datetime-local"
+                value={toDateTimeLocal(to)}
+                onChange={(event) => setTo(fromDateTimeLocal(event.target.value))}
+              />
+            </label>
+
+            <label>
+              Bucket
+              <select value={bucket} onChange={(event) => setBucket(event.target.value)}>
+                {BUCKET_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
-          {error ? <p className="error-text">{error}</p> : null}
+          <section className="panel-card">
+            <div className="panel-header">
+              <div>
+                <p className="panel-kicker">Detalle historico</p>
+                <h3>{selectedTopic || "Selecciona un topic"}</h3>
+              </div>
+              <span className="status-text">{querying ? "Consultando..." : `${points.length} puntos`}</span>
+            </div>
 
-          {selectedTopic ? (
-            <TimeseriesChart topic={selectedTopic} points={points} />
-          ) : (
-            <div className="empty-state">No hay topics disponibles para mostrar.</div>
-          )}
+            {selectedSnapshot ? (
+              <dl className="current-summary">
+                <div>
+                  <dt>Valor actual</dt>
+                  <dd>{formatValue(selectedSnapshot.value)}</dd>
+                </div>
+                <div>
+                  <dt>Ultimo registro</dt>
+                  <dd>{formatDate(selectedSnapshot.recorded_at)}</dd>
+                </div>
+              </dl>
+            ) : null}
+
+            {selectedTopic ? (
+              <TimeseriesChart topic={selectedTopic} points={points} />
+            ) : (
+              <div className="empty-state">Selecciona un topic para abrir el dashboard historico.</div>
+            )}
+          </section>
         </section>
 
         {user.role === "admin" ? <UserManagementPanel /> : null}

@@ -35,6 +35,39 @@ def list_topics() -> list[str]:
             return [row[0] for row in cursor.fetchall()]
 
 
+def get_latest_topic_values() -> list[dict[str, object]]:
+    query = sql.SQL(
+        """
+        SELECT DISTINCT ON ({topic_column})
+            {topic_column} AS topic,
+            {timestamp_column} AS recorded_at,
+            {value_column}::double precision AS value
+        FROM {table}
+        WHERE {value_column} IS NOT NULL
+        ORDER BY {topic_column}, {timestamp_column} DESC
+        """
+    ).format(
+        topic_column=sql.Identifier(settings.topics_name_column),
+        timestamp_column=sql.Identifier(settings.topics_timestamp_column),
+        value_column=sql.Identifier(settings.topics_value_column),
+        table=sql.Identifier(settings.topics_table),
+    )
+
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+
+    return [
+        {
+            "topic": row[0],
+            "recorded_at": row[1].isoformat(),
+            "value": float(row[2]),
+        }
+        for row in rows
+    ]
+
+
 def get_timeseries(topic: str, start: datetime, end: datetime, bucket: str):
     if bucket not in ALLOWED_BUCKETS:
         raise ValueError(f"Unsupported bucket: {bucket}")
@@ -64,4 +97,3 @@ def get_timeseries(topic: str, start: datetime, end: datetime, bucket: str):
             rows = cursor.fetchall()
 
     return [{"ts": row[0].isoformat(), "value": float(row[1])} for row in rows]
-

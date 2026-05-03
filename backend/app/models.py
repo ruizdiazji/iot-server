@@ -15,6 +15,16 @@ class TopicListResponse(BaseModel):
     topics: list[str]
 
 
+class TopicSnapshot(BaseModel):
+    topic: str
+    recorded_at: str
+    value: float
+
+
+class TopicSnapshotListResponse(BaseModel):
+    topics: list[TopicSnapshot]
+
+
 class SeriesPoint(BaseModel):
     ts: str
     value: float

@@ -17,11 +17,12 @@ from app.models import (
     LoginRequest,
     TimeseriesResponse,
     TopicListResponse,
+    TopicSnapshotListResponse,
     UpdateUserRequest,
     UserListResponse,
     UserResponse,
 )
-from app.queries import ALLOWED_BUCKETS, get_timeseries, list_topics
+from app.queries import ALLOWED_BUCKETS, get_latest_topic_values, get_timeseries, list_topics
 from app.users import (
     authenticate_user,
     create_user,
@@ -86,6 +87,11 @@ def me(current_user: CurrentUser):
 @app.get("/topics", response_model=TopicListResponse)
 def topics(_: CurrentUser):
     return TopicListResponse(topics=list_topics())
+
+
+@app.get("/topic-values", response_model=TopicSnapshotListResponse)
+def topic_values(_: CurrentUser):
+    return TopicSnapshotListResponse(topics=get_latest_topic_values())
 
 
 @app.get("/timeseries", response_model=TimeseriesResponse)

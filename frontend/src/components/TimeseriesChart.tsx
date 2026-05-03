@@ -34,21 +34,21 @@ export function TimeseriesChart({ topic, points }: TimeseriesChartProps) {
         left: 18,
         top: 12,
         textStyle: {
-          color: "#eef2ff",
+          color: "#172033",
           fontSize: 16,
           fontWeight: 600,
         },
       },
       xAxis: {
         type: "time",
-        axisLine: { lineStyle: { color: "#64748b" } },
-        axisLabel: { color: "#94a3b8" },
+        axisLine: { lineStyle: { color: "#c9d1dc" } },
+        axisLabel: { color: "#596273" },
       },
       yAxis: {
         type: "value",
-        axisLine: { lineStyle: { color: "#64748b" } },
-        splitLine: { lineStyle: { color: "rgba(148, 163, 184, 0.16)" } },
-        axisLabel: { color: "#94a3b8" },
+        axisLine: { lineStyle: { color: "#c9d1dc" } },
+        splitLine: { lineStyle: { color: "#e7ebf0" } },
+        axisLabel: { color: "#596273" },
       },
       dataZoom: [
         { type: "inside" },
@@ -62,10 +62,10 @@ export function TimeseriesChart({ topic, points }: TimeseriesChartProps) {
           showSymbol: false,
           lineStyle: {
             width: 2,
-            color: "#38bdf8",
+            color: "#0f766e",
           },
           areaStyle: {
-            color: "rgba(56, 189, 248, 0.15)",
+            color: "rgba(15, 118, 110, 0.14)",
           },
           data: points.map((point) => [point.ts, point.value]),
         },
@@ -83,4 +83,3 @@ export function TimeseriesChart({ topic, points }: TimeseriesChartProps) {
 
   return <div className="chart" ref={chartRef} />;
 }
-

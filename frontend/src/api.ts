@@ -3,6 +3,7 @@ import type {
   LoginPayload,
   TimeseriesResponse,
   TopicListResponse,
+  TopicSnapshotListResponse,
   UpdateUserPayload,
   User,
   UserListResponse,
@@ -47,6 +48,10 @@ export function getMe() {
 
 export function getTopics() {
   return request<TopicListResponse>("/topics");
+}
+
+export function getTopicValues() {
+  return request<TopicSnapshotListResponse>("/topic-values");
 }
 
 export function getTimeseries(params: {

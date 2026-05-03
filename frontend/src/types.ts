@@ -7,6 +7,16 @@ export interface TopicListResponse {
   topics: string[];
 }
 
+export interface TopicSnapshot {
+  topic: string;
+  recorded_at: string;
+  value: number;
+}
+
+export interface TopicSnapshotListResponse {
+  topics: TopicSnapshot[];
+}
+
 export interface SeriesPoint {
   ts: string;
   value: number;
