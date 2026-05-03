@@ -19,12 +19,7 @@ export function LoginPage({ onSubmit, error, loading }: LoginPageProps) {
     <main className="login-shell">
       <section className="login-panel">
         <div className="login-copy">
-          <p className="eyebrow">Plataforma de monitoreo</p>
-          <h1>Panel de control para el cultivo de hongos</h1>
-          <p className="subtitle">
-            Control de los procesos y consultas historicas enfocadas en
-            exploracion, filtros y analisis rapido del estado del sistema.
-          </p>
+          <p className="eyebrow">Panel de control para el cultivo de hongos</p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>

@@ -58,18 +58,30 @@ select {
 }
 
 .login-shell {
+  position: relative;
   display: grid;
   place-items: center;
   padding: 32px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 42% 42%, rgba(162, 79, 220, 0.45), transparent 32%),
-    radial-gradient(circle at 65% 18%, rgba(87, 38, 148, 0.6), transparent 34%),
-    linear-gradient(135deg, #3d1d71 0%, #5b238a 48%, #351866 100%);
+    linear-gradient(90deg, rgba(8, 14, 18, 0.78) 0%, rgba(8, 14, 18, 0.42) 48%, rgba(8, 14, 18, 0.62) 100%),
+    linear-gradient(180deg, rgba(23, 44, 36, 0.18), rgba(12, 18, 18, 0.52)),
+    url("/mushrooms-growing-forest.jpg") center / cover no-repeat;
+}
+
+.login-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 28% 50%, rgba(255, 139, 63, 0.18), transparent 30%),
+    radial-gradient(circle at 72% 22%, rgba(236, 249, 232, 0.18), transparent 26%);
+  pointer-events: none;
 }
 
 .login-panel {
   position: relative;
+  z-index: 1;
   width: min(980px, 100%);
   min-height: auto;
   display: grid;
@@ -90,7 +102,7 @@ select {
   background: transparent;
   border-right: 0;
   color: #ffffff;
-  text-shadow: 0 3px 16px rgba(24, 10, 48, 0.24);
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.48);
 }
 
 .eyebrow,
@@ -123,14 +135,14 @@ select {
 }
 
 .login-copy .eyebrow {
-  color: #efe6ff;
+  color: #ffd0a8;
   font-size: clamp(1rem, 1.5vw, 1.22rem);
   letter-spacing: 0;
 }
 
 .login-copy .subtitle {
   max-width: 36ch;
-  color: #efe6ff;
+  color: rgba(255, 255, 255, 0.84);
   font-size: 1rem;
 }
 
@@ -143,43 +155,43 @@ select {
 .login-form {
   padding: 30px;
   align-content: center;
-  border: 1px solid rgba(226, 204, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.26);
   border-radius: 14px;
-  background: rgba(43, 19, 78, 0.74);
-  box-shadow: 0 22px 58px rgba(24, 10, 48, 0.36);
-  backdrop-filter: blur(16px);
+  background: rgba(19, 25, 24, 0.42);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(18px);
 }
 
 .login-form label {
-  color: #efe6ff;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .login-form input {
-  border-color: rgba(226, 204, 255, 0.26);
-  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.14);
   color: #ffffff;
 }
 
 .login-form input:focus {
-  outline-color: rgba(217, 188, 255, 0.22);
-  border-color: #d8b4fe;
+  outline-color: rgba(255, 178, 106, 0.24);
+  border-color: #ffb26a;
 }
 
 .login-form input:-webkit-autofill,
 .login-form input:-webkit-autofill:hover,
 .login-form input:-webkit-autofill:focus {
   -webkit-text-fill-color: #ffffff;
-  box-shadow: 0 0 0 1000px rgba(62, 31, 107, 0.95) inset;
+  box-shadow: 0 0 0 1000px rgba(35, 40, 35, 0.95) inset;
 }
 
 .login-form button {
-  color: #321255;
-  background: #f4e8ff;
-  border-color: #f4e8ff;
+  color: #28160a;
+  background: #ffd0a8;
+  border-color: #ffd0a8;
 }
 
 .login-form button:hover:not(:disabled) {
-  color: #250d42;
+  color: #1d1008;
   background: #ffffff;
   border-color: #ffffff;
 }
