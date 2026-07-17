@@ -13,16 +13,42 @@ from app.auth import (
     set_auth_cookie,
 )
 from app.models import (
+    CalendarResponse,
+    CalendarUpdateRequest,
+    ConfigHistoryResponse,
+    ConfigUpdateRequest,
     CreateUserRequest,
+    CurrentConfigResponse,
+    DeviceListResponse,
+    DeviceOverviewResponse,
     LoginRequest,
+    LatestStatusResponse,
+    MetricListResponse,
+    MetricTimeseriesResponse,
+    ProcessTimeseriesResponse,
     TimeseriesResponse,
     TopicListResponse,
-    TopicSnapshotListResponse,
     UpdateUserRequest,
     UserListResponse,
     UserResponse,
 )
-from app.queries import ALLOWED_BUCKETS, get_latest_topic_values, get_timeseries, list_topics
+from app.queries import (
+    ALLOWED_BUCKETS,
+    ensure_observability_tables,
+    get_current_config,
+    get_current_calendar,
+    get_latest_status,
+    get_metric_timeseries,
+    get_overview,
+    get_process_timeseries,
+    get_timeseries,
+    list_config_history,
+    list_devices,
+    list_metrics,
+    list_topics,
+    publish_calendar_update,
+    publish_config_update,
+)
 from app.users import (
     authenticate_user,
     create_user,
@@ -48,6 +74,7 @@ CurrentAdmin = Annotated[dict[str, str], Depends(require_admin)]
 
 @app.on_event("startup")
 def startup() -> None:
+    ensure_observability_tables()
     ensure_admin_user()
 
 
@@ -89,11 +116,6 @@ def topics(_: CurrentUser):
     return TopicListResponse(topics=list_topics())
 
 
-@app.get("/topic-values", response_model=TopicSnapshotListResponse)
-def topic_values(_: CurrentUser):
-    return TopicSnapshotListResponse(topics=get_latest_topic_values())
-
-
 @app.get("/timeseries", response_model=TimeseriesResponse)
 def timeseries(
     _: CurrentUser,
@@ -116,6 +138,158 @@ def timeseries(
 
     points = get_timeseries(topic, from_ts, to_ts, bucket)
     return TimeseriesResponse(topic=topic, bucket=bucket, points=points)
+
+
+@app.get("/devices", response_model=DeviceListResponse)
+def devices(_: CurrentUser):
+    return DeviceListResponse(devices=list_devices())
+
+
+@app.get("/devices/{group_id}/{edge_node_id}/metrics", response_model=MetricListResponse)
+def metrics(group_id: str, edge_node_id: str, _: CurrentUser):
+    return MetricListResponse(metrics=list_metrics(group_id, edge_node_id))
+
+
+@app.get("/devices/{group_id}/{edge_node_id}/overview", response_model=DeviceOverviewResponse)
+def overview(group_id: str, edge_node_id: str, _: CurrentUser):
+    return DeviceOverviewResponse(**get_overview(group_id, edge_node_id))
+
+
+@app.get("/devices/{group_id}/{edge_node_id}/status/latest", response_model=LatestStatusResponse)
+def latest_status(group_id: str, edge_node_id: str, _: CurrentUser):
+    return LatestStatusResponse(**get_latest_status(group_id, edge_node_id))
+
+
+@app.get("/metrics/timeseries", response_model=MetricTimeseriesResponse)
+def metric_timeseries(
+    _: CurrentUser,
+    group_id: str = Query(min_length=1),
+    edge_node_id: str = Query(min_length=1),
+    device_id: str = Query(min_length=1),
+    metric_name: str = Query(min_length=1),
+    from_ts: datetime = Query(alias="from"),
+    to_ts: datetime = Query(alias="to"),
+    bucket: str = Query(default="1 minute"),
+):
+    if from_ts >= to_ts:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="'from' must be earlier than 'to'",
+        )
+
+    if bucket not in ALLOWED_BUCKETS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported bucket. Allowed values: {', '.join(sorted(ALLOWED_BUCKETS))}",
+        )
+
+    points = get_metric_timeseries(
+        group_id,
+        edge_node_id,
+        device_id,
+        metric_name,
+        from_ts,
+        to_ts,
+        bucket,
+    )
+    return MetricTimeseriesResponse(
+        group_id=group_id,
+        edge_node_id=edge_node_id,
+        device_id=device_id,
+        metric_name=metric_name,
+        bucket=bucket,
+        points=points,
+    )
+
+
+@app.get("/process-timeseries", response_model=ProcessTimeseriesResponse)
+def process_timeseries(
+    _: CurrentUser,
+    group_id: str = Query(min_length=1),
+    edge_node_id: str = Query(min_length=1),
+    process: str = Query(default="temperature", pattern="^(temperature|humidity|co2|light|energy)$"),
+    from_ts: datetime = Query(alias="from"),
+    to_ts: datetime = Query(alias="to"),
+    bucket: str = Query(default="1 minute"),
+):
+    if from_ts >= to_ts:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="'from' must be earlier than 'to'",
+        )
+
+    if bucket not in ALLOWED_BUCKETS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported bucket. Allowed values: {', '.join(sorted(ALLOWED_BUCKETS))}",
+        )
+
+    series = get_process_timeseries(
+        group_id,
+        edge_node_id,
+        process,
+        from_ts,
+        to_ts,
+        bucket,
+    )
+    return ProcessTimeseriesResponse(
+        group_id=group_id,
+        edge_node_id=edge_node_id,
+        process=process,
+        bucket=bucket,
+        series=series,
+    )
+
+
+@app.get("/devices/{group_id}/{edge_node_id}/config/current", response_model=CurrentConfigResponse)
+def current_config(group_id: str, edge_node_id: str, _: CurrentUser):
+    return CurrentConfigResponse(**get_current_config(group_id, edge_node_id))
+
+
+@app.get("/devices/{group_id}/{edge_node_id}/config/history", response_model=ConfigHistoryResponse)
+def config_history(group_id: str, edge_node_id: str, _: CurrentUser):
+    return ConfigHistoryResponse(revisions=list_config_history(group_id, edge_node_id))
+
+
+@app.patch("/devices/{group_id}/{edge_node_id}/config", response_model=ConfigHistoryResponse)
+def patch_config(
+    group_id: str,
+    edge_node_id: str,
+    payload: ConfigUpdateRequest,
+    current_user: CurrentAdmin,
+):
+    revision = publish_config_update(
+        group_id=group_id,
+        edge_node_id=edge_node_id,
+        device_id="control",
+        config=payload.config,
+        save=payload.save,
+        changed_by=current_user["username"],
+    )
+    return ConfigHistoryResponse(revisions=[revision])
+
+
+@app.get("/devices/{group_id}/{edge_node_id}/calendar", response_model=CalendarResponse)
+def current_calendar(group_id: str, edge_node_id: str, _: CurrentUser):
+    return CalendarResponse(**get_current_calendar(group_id, edge_node_id))
+
+
+@app.patch("/devices/{group_id}/{edge_node_id}/calendar", response_model=ConfigHistoryResponse)
+def patch_calendar(
+    group_id: str,
+    edge_node_id: str,
+    payload: CalendarUpdateRequest,
+    current_user: CurrentAdmin,
+):
+    revision = publish_calendar_update(
+        group_id=group_id,
+        edge_node_id=edge_node_id,
+        device_id="control",
+        calendar=payload.calendar.model_dump(),
+        save=payload.save,
+        changed_by=current_user["username"],
+    )
+    return ConfigHistoryResponse(revisions=[revision])
 
 
 @app.get("/users", response_model=UserListResponse)

@@ -25,6 +25,12 @@ class Settings(BaseModel):
     access_token_exp_minutes: int = 60 * 12
     users_table: str = os.getenv("USERS_TABLE", "dashboard_users")
 
+    mqtt_host: str = os.getenv("MQTT_HOST", "localhost")
+    mqtt_port: int = int(os.getenv("MQTT_PORT", "1883"))
+    mqtt_username: str | None = os.getenv("MQTT_USERNAME") or None
+    mqtt_password: str | None = os.getenv("MQTT_PASSWORD") or None
+    default_command_topic: str = os.getenv("DEFAULT_COMMAND_TOPIC", "central_controller/sensors/cmd")
+
     @property
     def postgres_dsn(self) -> str:
         return (

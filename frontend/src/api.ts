@@ -1,9 +1,17 @@
 import type {
+  CalendarPlan,
+  CalendarResponse,
+  ConfigHistoryResponse,
+  CurrentConfigResponse,
   CreateUserPayload,
+  DeviceListResponse,
+  DeviceOverviewResponse,
   LoginPayload,
+  MetricListResponse,
+  MetricTimeseriesResponse,
+  ProcessTimeseriesResponse,
   TimeseriesResponse,
   TopicListResponse,
-  TopicSnapshotListResponse,
   UpdateUserPayload,
   User,
   UserListResponse,
@@ -50,10 +58,6 @@ export function getTopics() {
   return request<TopicListResponse>("/topics");
 }
 
-export function getTopicValues() {
-  return request<TopicSnapshotListResponse>("/topic-values");
-}
-
 export function getTimeseries(params: {
   topic: string;
   from: string;
@@ -62,6 +66,85 @@ export function getTimeseries(params: {
 }) {
   const searchParams = new URLSearchParams(params);
   return request<TimeseriesResponse>(`/timeseries?${searchParams.toString()}`);
+}
+
+export function getDevices() {
+  return request<DeviceListResponse>("/devices");
+}
+
+export function getDeviceOverview(groupId: string, edgeNodeId: string) {
+  return request<DeviceOverviewResponse>(
+    `/devices/${encodeURIComponent(groupId)}/${encodeURIComponent(edgeNodeId)}/overview`,
+  );
+}
+
+export function getMetrics(groupId: string, edgeNodeId: string) {
+  return request<MetricListResponse>(
+    `/devices/${encodeURIComponent(groupId)}/${encodeURIComponent(edgeNodeId)}/metrics`,
+  );
+}
+
+export function getMetricTimeseries(params: {
+  group_id: string;
+  edge_node_id: string;
+  device_id: string;
+  metric_name: string;
+  from: string;
+  to: string;
+  bucket: string;
+}) {
+  const searchParams = new URLSearchParams(params);
+  return request<MetricTimeseriesResponse>(`/metrics/timeseries?${searchParams.toString()}`);
+}
+
+export function getProcessTimeseries(params: {
+  group_id: string;
+  edge_node_id: string;
+  process: string;
+  from: string;
+  to: string;
+  bucket: string;
+}) {
+  const searchParams = new URLSearchParams(params);
+  return request<ProcessTimeseriesResponse>(`/process-timeseries?${searchParams.toString()}`);
+}
+
+export function getCurrentConfig(groupId: string, edgeNodeId: string) {
+  return request<CurrentConfigResponse>(
+    `/devices/${encodeURIComponent(groupId)}/${encodeURIComponent(edgeNodeId)}/config/current`,
+  );
+}
+
+export function getConfigHistory(groupId: string, edgeNodeId: string) {
+  return request<ConfigHistoryResponse>(
+    `/devices/${encodeURIComponent(groupId)}/${encodeURIComponent(edgeNodeId)}/config/history`,
+  );
+}
+
+export function updateConfig(groupId: string, edgeNodeId: string, payload: { config: Record<string, unknown>; save: boolean }) {
+  return request<ConfigHistoryResponse>(
+    `/devices/${encodeURIComponent(groupId)}/${encodeURIComponent(edgeNodeId)}/config`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function getCalendar(groupId: string, edgeNodeId: string) {
+  return request<CalendarResponse>(
+    `/devices/${encodeURIComponent(groupId)}/${encodeURIComponent(edgeNodeId)}/calendar`,
+  );
+}
+
+export function updateCalendar(groupId: string, edgeNodeId: string, payload: { calendar: CalendarPlan; save: boolean }) {
+  return request<ConfigHistoryResponse>(
+    `/devices/${encodeURIComponent(groupId)}/${encodeURIComponent(edgeNodeId)}/calendar`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+  );
 }
 
 export function getUsers() {
