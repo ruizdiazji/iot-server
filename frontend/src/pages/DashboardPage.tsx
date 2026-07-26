@@ -658,11 +658,16 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
           <small>{user.role}</small>
         </div>
 
-        <button className="secondary-button" onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))} type="button">
+        <button
+          aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+          className="secondary-button theme-button"
+          onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+          type="button"
+        >
           <span>{theme === "dark" ? "Modo light" : "Modo dark"}</span>
         </button>
 
-        <button className="secondary-button" onClick={() => void handleLogout()} type="button">
+        <button aria-label="Cerrar sesion" className="secondary-button logout-button" onClick={() => void handleLogout()} type="button">
           <span>Cerrar sesion</span>
         </button>
       </aside>

@@ -13,7 +13,9 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   background: #eef1f4;
+  overflow-x: hidden;
 }
 
 body.theme-dark {
@@ -249,6 +251,7 @@ button:disabled {
   display: grid;
   align-content: start;
   gap: 6px;
+  min-width: 0;
 }
 
 .topbar {
@@ -916,14 +919,15 @@ body.theme-dark .empty-state.compact {
   .gauge-grid,
   .energy-gauge-grid,
   .overview-grid,
-  .filters-card,
   .status-grid,
   .output-grid,
   .linear-gauge-grid,
+  .calendar-stage-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filters-card,
   .calendar-form,
-  .calendar-stage-list,
-  .stage-day-grid,
-  .setpoint-grid,
   .user-form,
   .video-controls {
     grid-template-columns: 1fr;
@@ -944,23 +948,159 @@ body.theme-dark .empty-state.compact {
 
 @media (max-width: 640px) {
   .sidebar {
-    grid-template-columns: 1fr;
-    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "node theme logout"
+      "tabs tabs tabs";
+    align-items: end;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .sidebar > label {
+    grid-area: node;
+    min-width: 0;
   }
 
   .sidebar-tabs {
-    order: 2;
+    grid-area: tabs;
+    width: 100%;
+    margin: 0;
   }
 
-  .secondary-button {
-    order: 3;
+  .sidebar > .secondary-button {
+    width: 44px;
+    min-width: 44px;
+    height: 42px;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+  }
+
+  .sidebar > .theme-button {
+    grid-area: theme;
+  }
+
+  .sidebar > .logout-button {
+    grid-area: logout;
+  }
+
+  .sidebar > .theme-button::after {
+    content: "◐";
+    font-size: 1.25rem;
+  }
+
+  .sidebar > .logout-button::after {
+    content: "↪";
+    font-size: 1.25rem;
+  }
+
+  .menu-label {
+    font-size: 0.75rem;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
   }
 
   .dashboard-content {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .panel-card,
+  .filters-card {
     padding: 12px;
   }
 
+  .gauge-grid,
+  .energy-gauge-grid,
+  .overview-grid,
+  .status-grid,
+  .output-grid,
+  .linear-gauge-grid,
+  .calendar-stage-list,
+  .stage-day-grid,
+  .setpoint-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gauge-card {
+    min-height: 150px;
+  }
+
+  .panel-header,
+  .section-header {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .panel-header {
+    flex-direction: column;
+  }
+
+  .quick-filters,
+  .process-tabs,
+  .calendar-actions,
+  .config-actions,
+  .video-actions {
+    width: 100%;
+  }
+
+  .quick-filters > *,
+  .process-tabs > * {
+    flex: 1 1 auto;
+  }
+
+  .stage-timeline {
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .stage-stepper,
+  .stage-timeline-footer {
+    min-width: 560px;
+  }
+
+  .chart {
+    height: 340px;
+  }
+
+  .users-head {
+    display: none;
+  }
+
+  .users-row {
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px 12px;
+  }
+
+  .users-row .table-button {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
   .video-stage {
-    height: clamp(220px, calc(100vh - 390px), 480px);
+    height: clamp(220px, calc(100dvh - 260px), 480px);
+  }
+
+  .login-shell {
+    padding: 14px;
+  }
+
+  .login-panel {
+    padding: 14px;
+  }
+
+  .login-copy,
+  .login-form {
+    padding: 20px;
+  }
+
+  .login-copy h1 {
+    font-size: clamp(2rem, 11vw, 3rem);
   }
 }
