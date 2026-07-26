@@ -233,6 +233,7 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
   const [savingConfig, setSavingConfig] = useState(false);
   const [savingCalendar, setSavingCalendar] = useState(false);
   const [menuCollapsed, setMenuCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     const savedTheme = window.localStorage.getItem("dashboard_theme");
     return savedTheme === "dark" ? "dark" : "light";
@@ -271,6 +272,11 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
       document.body.classList.remove("theme-dark");
     };
   }, [theme]);
+
+  useEffect(() => {
+    document.body.classList.toggle("mobile-nav-open", mobileMenuOpen);
+    return () => document.body.classList.remove("mobile-nav-open");
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     let active = true;
@@ -584,7 +590,22 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
   }
 
   return (
-    <main className={menuCollapsed ? "dashboard-shell menu-collapsed" : "dashboard-shell"}>
+    <main className={`dashboard-shell${menuCollapsed ? " menu-collapsed" : ""}${mobileMenuOpen ? " mobile-menu-open" : ""}`}>
+      <header className="mobile-header">
+        <button aria-label="Abrir menu" className="mobile-menu-button" onClick={() => setMobileMenuOpen(true)} type="button">
+          <span aria-hidden="true">☰</span>
+        </button>
+        <div className="mobile-header-copy">
+          <strong>Panel de cultivo</strong>
+          <small>{selectedNode ? `${selectedNode.group_id} / ${selectedNode.edge_node_id}` : "Sin nodo"}</small>
+        </div>
+        <span className="mobile-user" title={user.username}>
+          {user.username.slice(0, 1).toUpperCase()}
+        </span>
+      </header>
+
+      <button aria-label="Cerrar menu" className="mobile-menu-backdrop" onClick={() => setMobileMenuOpen(false)} type="button" />
+
       {menuCollapsed ? (
         <button
           aria-label="Mostrar menu"
@@ -598,6 +619,16 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
       ) : null}
 
       <aside className="sidebar">
+        <div className="mobile-drawer-header">
+          <div>
+            <strong>Navegacion</strong>
+            <small>{user.username} · {user.role}</small>
+          </div>
+          <button aria-label="Cerrar menu" className="mobile-drawer-close" onClick={() => setMobileMenuOpen(false)} type="button">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+
         <button
           aria-label="Ocultar menu"
           className="menu-toggle"
@@ -627,26 +658,26 @@ export function DashboardPage({ user, onLoggedOut }: DashboardPageProps) {
         </label>
 
         <nav className="sidebar-tabs">
-          <button className={activeTab === "status" ? "tab-button active" : "tab-button"} onClick={() => setActiveTab("status")} type="button">
+          <button className={activeTab === "status" ? "tab-button active" : "tab-button"} onClick={() => { setActiveTab("status"); setMobileMenuOpen(false); }} type="button">
             <span>Estado actual</span>
           </button>
-          <button className={activeTab === "system" ? "tab-button active" : "tab-button"} onClick={() => setActiveTab("system")} type="button">
+          <button className={activeTab === "system" ? "tab-button active" : "tab-button"} onClick={() => { setActiveTab("system"); setMobileMenuOpen(false); }} type="button">
             <span>Estado del sistema</span>
           </button>
-          <button className={activeTab === "history" ? "tab-button active" : "tab-button"} onClick={() => setActiveTab("history")} type="button">
+          <button className={activeTab === "history" ? "tab-button active" : "tab-button"} onClick={() => { setActiveTab("history"); setMobileMenuOpen(false); }} type="button">
             <span>Historicos</span>
           </button>
-          <button className={activeTab === "calendar" ? "tab-button active" : "tab-button"} onClick={() => setActiveTab("calendar")} type="button">
+          <button className={activeTab === "calendar" ? "tab-button active" : "tab-button"} onClick={() => { setActiveTab("calendar"); setMobileMenuOpen(false); }} type="button">
             <span>Calendario</span>
           </button>
-          <button className={activeTab === "video" ? "tab-button active" : "tab-button"} onClick={() => setActiveTab("video")} type="button">
+          <button className={activeTab === "video" ? "tab-button active" : "tab-button"} onClick={() => { setActiveTab("video"); setMobileMenuOpen(false); }} type="button">
             <span>Video en vivo</span>
           </button>
-          <button className={activeTab === "config" ? "tab-button active" : "tab-button"} onClick={() => setActiveTab("config")} type="button">
+          <button className={activeTab === "config" ? "tab-button active" : "tab-button"} onClick={() => { setActiveTab("config"); setMobileMenuOpen(false); }} type="button">
             <span>Configuracion</span>
           </button>
           {user.role === "admin" ? (
-            <button className={activeTab === "users" ? "tab-button active" : "tab-button"} onClick={() => setActiveTab("users")} type="button">
+            <button className={activeTab === "users" ? "tab-button active" : "tab-button"} onClick={() => { setActiveTab("users"); setMobileMenuOpen(false); }} type="button">
               <span>Usuarios</span>
             </button>
           ) : null}
